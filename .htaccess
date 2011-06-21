@@ -1,0 +1,4 @@
+Options +FollowSymlinks
+RewriteEngine on
+RewriteCond %{REQUEST_URI} !index\.php.*$
+RewriteRule ^(.+)$ index.php?file=$1

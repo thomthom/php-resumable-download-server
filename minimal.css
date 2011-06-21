@@ -1,0 +1,63 @@
+html,
+table
+{
+	font-family: 'Segoe UI', 'Tahoma', sans-serif;
+}
+
+body
+{
+	color: #333;
+	width: 80%;
+	margin: 0 auto;
+}
+
+h1 + p {
+	margin-top: -1.5em;
+	font-style: italic;
+}
+
+table
+{
+	width: 100%;
+}
+table a
+{
+	display: block;
+}
+
+tr:hover
+{
+	background: #eee;
+}
+
+th
+{
+	font-weight: normal;
+	font-variant: small-caps;
+	background: #fff;
+	border-bottom: 1px solid #ccc;
+}
+
+a
+{
+	color: #429DFB;
+	text-decoration: none;
+}
+a:visited
+{
+	color: #89C016;
+}
+a:hover
+{
+	color: #FF8000;
+}
+a img
+{
+	border: 0;
+}
+
+hr
+{
+	border: 1px solid #ccc;
+	height: 1px;
+}
