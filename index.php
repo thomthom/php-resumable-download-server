@@ -11,9 +11,14 @@
  *
  * server.ini contains the configuration of the server.
  *
- * @version 1.1.0
- * @copyright 2007 Thomas Thomassen
- * http://www.thomthom.net/blog/2007/09/php-resumable-download-server/
+ * @version 1.1.1
+ * @copyright 2007-2012 Thomas Thomassen
+ *
+ * Project BitBucket Repository:
+ *   https://bitbucket.org/thomthom/php-resumable-download-server
+ *
+ * Project Announcement:
+ *   http://www.thomthom.net/blog/2007/09/php-resumable-download-server/
  *
  * TODO:
  * - Check the HTTP specs to how to handle certain errors.
