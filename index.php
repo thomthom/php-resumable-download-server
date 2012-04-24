@@ -93,7 +93,7 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
     // If we can't open the file issue an 500 error.
     if (($fp = @fopen($file, 'rb')) === false)
     {
-      http_error_500('<p>Could open requested file.</p>');
+      http_error_500('<p>Could not open requested file.</p>');
     }
     // Now we send some header information describing the connection.
     header('Pragma: public'); // Fix IE6 Content-Disposition
