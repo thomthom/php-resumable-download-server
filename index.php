@@ -99,7 +99,6 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
     header('Pragma: public'); // Fix IE6 Content-Disposition
     header('Content-Description: File Transfer');
     header('Content-Transfer-Encoding: binary');
-    //header(sprintf('Content-Length: %u', filesize($file))); // Should be able to handle 2GB-4GB files
     // Try to extract the mime type by using the PECL Fileinfo extension.
     // Fall back on guessing mime type from the file extension.
     // On any errors, fall back and serve 'text/plain' mime type.
@@ -139,18 +138,20 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
       // prompt browsers Save As dialog?
       header('Content-type: text/plain');
     }
-    // Force download dialog if option enabled
+    // Force download dialog if option enabled.
     try
     {
       if ($settings['Server']['ForceDownload'])
       {
         $basename = basename($file);
-        if (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], "MSIE"))
+        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+        if ( isset($user_agent) && strstr($user_agent, "MSIE") )
         {
-          // workaround for IE filename bug with multiple periods / multiple dots in filename
-          // that adds square brackets to filename - eg. setup.abc.exe becomes setup[1].abc.exe
+          // Workaround for IE filename bug with multiple periods / multiple
+          // dots in filename that adds square brackets to filename.
+          // eg. setup.abc.exe becomes setup[1].abc.exe
           $iefilename = preg_replace('/\./', '%2e', $basename, substr_count($basename, '.') - 1);
-            }
+        }
         header("Content-Disposition: attachment; filename=\"$basename\"");
       }
     }
@@ -169,10 +170,13 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
       $length = $size;           // Content length
       $start  = 0;               // Start byte
       $end    = $size - 1;       // End byte
-      // Now that we've gotten so far without errors we send the accept range header
-      /* At the moment we only support single ranges.
+      /* Now that we've gotten so far without errors we send the accept range
+       * header.
+       *
+       * At the moment we only support single ranges.
        * Multiple ranges requires some more work to ensure it works correctly
-       * and comply with the spesifications: http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.2
+       * and comply with the spesifications:
+       *    http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.2
        *
        * Multirange support annouces itself with:
        * header('Accept-Ranges: bytes');
@@ -182,10 +186,7 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
        * as well as a boundry header to indicate the various chunks of data.
        */
       header("Accept-Ranges: 0-$length");
-      // header('Accept-Ranges: bytes');
-      // multipart/byteranges
-      // http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.2
-      if (isset($_SERVER['HTTP_RANGE']))
+      if ( isset($_SERVER['HTTP_RANGE']) )
       {
         $c_start = $start;
         $c_end   = $end;
@@ -194,20 +195,20 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
         // Make sure the client hasn't sent us a multibyte range
         if (strpos($range, ',') !== false)
         {
-          // (?) Shoud this be issued here, or should the first
-          // range be used? Or should the header be ignored and
-          // we output the whole content?
+          // (?) Shoud this be issued here, or should the first range be used?
+          //     Or should the header be ignored and we output the whole
+          //     content?
           header('HTTP/1.1 416 Requested Range Not Satisfiable');
           header("Content-Range: bytes $start-$end/$size");
           // (?) Echo some info to the client?
           exit;
         }
-        // If the range starts with an '-' we start from the beginning
-        // If not, we forward the file pointer
-        // And make sure to get the end byte if spesified
+        // If the range starts with an '-' we start from the beginning.
+        // If not, we forward the file pointer and make sure to get the end byte
+        // if spesified.
         if ($range{0} == '-')
         {
-          // The n-number of the last bytes is requested
+          // The n-number of the last bytes is requested.
           $c_start = $size - substr($range, 1);
         }
         else
@@ -216,9 +217,9 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
           $c_start = $range[0];
           $c_end   = (isset($range[1]) && is_numeric($range[1])) ? $range[1] : $size;
         }
-        /* Check the range and make sure it's treated according to the specs.
-         * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
-         */
+        // Check the range and make sure it's treated according to the specs.
+        // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+        //
         // End bytes can not be larger than $end.
         $c_end = ($c_end > $end) ? $end : $c_end;
         // Validate the requested range and return an error if it's not correct.
@@ -229,42 +230,44 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
           // (?) Echo some info to the client?
           exit;
         }
+        // Range is validated at this point.
         $start  = $c_start;
         $end    = $c_end;
         $length = $end - $start + 1; // Calculate new content length
         fseek($fp, $start);
         header('HTTP/1.1 206 Partial Content');
       }
-      // Notify the client the byte range we'll be outputting
+      // Notify the client the byte range we'll be outputting.
       header("Content-Range: bytes $start-$end/$size");
       header("Content-Length: $length");
     }
     catch (Exception $e)
     {
-      // We silently ignore error messages and try to output the file
-      // Unless we're debugging.
+      // We silently ignore error messages and try to output the filee unless
+      // we're debugging.
       if ($settings['General']['Debug'])
       {
         echo $e;
       }
     }
-    // Start buffered download
+    // Start buffered download.
     $buffer = 1024 * 8;
     while(!feof($fp) && ($p = ftell($fp)) <= $end)
     {
       if ($p + $buffer > $end)
       {
-        // In case we're only outputtin a chunk, make sure we don't
-        // read past the length
+        // In case we're only outputtin a chunk, make sure we don't read past
+        // the length.
         $buffer = $end - $p + 1;
       }
-      set_time_limit(0); // Reset time limit for big files
+      set_time_limit(0); // Reset time limit for big files.
       echo fread($fp, $buffer);
-      flush(); // Free up memory. Otherwise large files will trigger PHP's memory limit.
+      // Free up memory. Otherwise large files will trigger PHP's memory limit.
+      flush();
     }
     fclose($fp);
 
-    // Log the download to the database
+    // Log the download.
     try
     {
       log_download($_GET['file']);
@@ -275,7 +278,7 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
     }
     exit; // Prevents \n to be appended at the end of the script
   }
-  elseif (is_dir($file))
+  elseif ( is_dir($file) )
   {
     list_files($file . DIRECTORY_SEPARATOR);
   }
