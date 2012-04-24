@@ -545,7 +545,8 @@ function readfile_chunked($filename, $retbytes = true)
     }
   }
   $status = fclose($handle);
-  if ($retbytes && $status) {
+  if ($retbytes && $status)
+  {
     return $cnt; // return num. bytes delivered like readfile() does.
   }
   return $status;
