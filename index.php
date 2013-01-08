@@ -228,7 +228,7 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
         // End bytes can not be larger than $end.
         $c_end = ($c_end > $end) ? $end : $c_end;
         // Validate the requested range and return an error if it's not correct.
-        if ($c_start > $c_end || $c_start > $size - 1 || $c_end >= $size)
+        if ($c_start < 0 || $c_start > $c_end || $c_start > $size - 1 || $c_end >= $size)
         {
           header('HTTP/1.1 416 Requested Range Not Satisfiable');
           header("Content-Range: bytes $start-$end/$size");
