@@ -95,6 +95,11 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
 {
   if (is_file($file))
   {
+    // Disable output compression.
+    // http://www.richnetapps.com/the-right-way-to-handle-file-downloads-in-php/
+    @apache_setenv('no-gzip', 1);
+    @ini_set('zlib.output_compression', 'Off');
+    
     // If we can't open the file issue an 500 error.
     if (($fp = @fopen($file, 'rb')) === false)
     {
