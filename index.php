@@ -195,24 +195,39 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
        * (mediatype = mimetype)
        * as well as a boundry header to indicate the various chunks of data.
        */
-      header("Accept-Ranges: 0-$length");
+      header('Accept-Ranges: bytes');
       if ( isset($_SERVER['HTTP_RANGE']) )
       {
         $c_start = $start;
         $c_end   = $end;
         // Extract the range string
-        list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-        // Make sure the client hasn't sent us a multibyte range
-        if (strpos($range, ',') !== false)
+        list($range_type, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+        if ($range_type != 'bytes')
         {
-          // (?) Shoud this be issued here, or should the first range be used?
-          //     Or should the header be ignored and we output the whole
-          //     content?
+          /*
+            http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.17
+          
+            A server SHOULD return a response with this status code if a request
+            included a Range request-header field (section 14.35), and none of
+            the range-specifier values in this field overlap the current extent
+            of the selected resource, and the request did not include an
+            If-Range request-header field. (For byte-ranges, this means that the
+            first- byte-pos of all of the byte-range-spec values were greater
+            than the current length of the selected resource.)
+
+            When this status code is returned for a byte-range request, the
+            response SHOULD include a Content-Range entity-header field
+            specifying the current length of the selected resource
+            (see section 14.16). This response MUST NOT use the
+            multipart/byteranges content- type. 
+          */
           header('HTTP/1.1 416 Requested Range Not Satisfiable');
           header("Content-Range: bytes $start-$end/$size");
-          // (?) Echo some info to the client?
           exit;
         }
+        // Use only first range set as  multiple ranges are currently not
+        // supported.
+        list($range, $leftover_ranges) = explode(',', $range_orig, 2);
         // If the range starts with an '-' we start from the beginning.
         // If not, we forward the file pointer and make sure to get the end byte
         // if spesified.
