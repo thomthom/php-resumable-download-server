@@ -275,7 +275,14 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
         echo $e;
       }
     }
-    // Start buffered download.
+    /*
+     * Ensure output buffering is off. It appeared to yield 1 on an default WAMP
+     * installation. When clicking the download the hour glass would spin for a
+     * while and the file dialog took a while to appear. When it finally did the
+     * 214MB file downloaded only 128MB before a fatal PHP error was thrown,
+     * complaining about memory being exhausted.
+     */
+    ob_end_clean();
     $buffer = 1024 * 8;
     while(!feof($fp) && ($p = ftell($fp)) <= $end)
     {
