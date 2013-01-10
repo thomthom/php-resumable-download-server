@@ -201,7 +201,7 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
         $c_start = $start;
         $c_end   = $end;
         // Extract the range string
-        list($range_type, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+        list($range_type, $range_data) = explode('=', $_SERVER['HTTP_RANGE'], 2);
         if ($range_type != 'bytes')
         {
           /*
@@ -227,7 +227,8 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
         }
         // Use only first range set as  multiple ranges are currently not
         // supported.
-        list($range, $leftover_ranges) = explode(',', $range_orig, 2);
+        $ranges = explode(',', $range_data, 2);
+        $range = $ranges[0];
         // If the range starts with an '-' we start from the beginning.
         // If not, we forward the file pointer and make sure to get the end byte
         // if spesified.
