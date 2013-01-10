@@ -105,10 +105,14 @@ if (file_exists("{$settings['Server']['Repository']}/{$_GET['file']}") &&
     {
       http_error_500('<p>Could not open requested file.</p>');
     }
-    // Now we send some header information describing the connection.
+    // Prevent caching.
     header('Pragma: public'); // Fix IE6 Content-Disposition
-    header('Content-Description: File Transfer');
-    header('Content-Transfer-Encoding: binary');
+    header('Expires: -1');
+		header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
+    // Enable resuamble download in IE9.
+    // http://blogs.msdn.com/b/ieinternals/archive/2011/06/03/send-an-etag-to-enable-http-206-file-download-resume-without-restarting.aspx
+    $etag = etag($file, true);
+    header("Etag:  $etag");
     // Try to extract the mime type by using the PECL Fileinfo extension.
     // Fall back on guessing mime type from the file extension.
     // On any errors, fall back and serve 'text/plain' mime type.
@@ -546,6 +550,26 @@ function filesize_format($bytes, $format = '', $force = '')
     $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
 
   return sprintf($format, $bytes / pow(1024, $power), $units[$power]);
+}
+
+/**
+ * Generates an ETAG for a given file.
+ *
+ * http://php.net/manual/en/function.http-match-etag.php
+ * http://www.xpertdeveloper.com/2011/03/http-etag-explained/
+ * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19
+ * http://en.wikipedia.org/wiki/HTTP_ETag
+ *
+ * @param   string  $filename The file to generate ETAG for.
+ * @param   bool    $quote    Optional.
+ * @return  string            The ETAG.
+ */
+function etag($filename, $quote = true)
+{
+  if ( !file_exists($filename) || !($info = stat($filename)) )
+    return false;
+  $q = ($quote) ? '"' : '';
+  return sprintf("$q%x-%x-%x$q", $info['ino'], $info['size'], $info['mtime']);
 }
 
 /**
